@@ -3,10 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -32,6 +29,7 @@ public class StopperAblak extends JFrame {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         panel = (JPanel) (this.getContentPane());
         this.setLayout(null);
+        stopDuration = Duration.ZERO;
 
         btnStartStop = new JButton("Start");
         btnStartStop.setBounds(20, 45, 120, 30);
@@ -48,35 +46,28 @@ public class StopperAblak extends JFrame {
                 } else {
                     startTime = LocalTime.now();
                     myTimer = new Timer();
+                    btnStartStop.setText("Stop");
+                    btnResetReszido.setText("Részidő");
+                    startStop = true;
                     TimerTask task = new TimerTask() {
 
                         @Override
                         public void run() {
 
-                            btnStartStop.setText("Stop");
-                            btnResetReszido.setText("Részidő");
 
-                            String[] tomb = lblSzamol.getText().split("[:.]");
-                            int ezred = Integer.parseInt(tomb[2]);
-                            int masod = Integer.parseInt(tomb[1]);
-                            int perc = Integer.parseInt(tomb[0]);
+                            Duration elapsed = Duration.between(startTime, LocalTime.now());
+                            elapsed = elapsed.plus(stopDuration);
+                            int minutes = elapsed.toMinutesPart();
+                            int seconds = elapsed.toSecondsPart();
+                            int millis = elapsed.toMillisPart();
 
-                            ezred++;
-                            if (ezred == 1000) {
-                                ezred = 0;
-                                masod++;
-                                if (masod == 60) {
-                                    masod = 0;
-                                    perc++;
-                                }
-                            }
+                            lblSzamol.setText(String.format("%02d:%02d.%03d", minutes, seconds, millis));
 
-                            lblSzamol.setText(String.format("%02d:%02d.%03d", perc, masod, ezred));
-                            startStop = true;
                         }
                     };
                     myTimer.schedule(task, 0, 1);
                 }
+
             }
         });
 
@@ -87,17 +78,12 @@ public class StopperAblak extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (btnResetReszido.getText().equals("Részidő")) {
 
-                    Duration elapsed = Duration.between(startTime, LocalTime.now());
-                    elapsed = elapsed.plus(stopDuration);
-                    int minutes = elapsed.toMinutesPart();
-                    int seconds = elapsed.toSecondsPart();
-                    int millis = elapsed.toMillisPart();
                     //panelReszido.add(String.format("%02d:%02d.%03d",minutes,seconds,millis));
                     //panelReszido.add(lblSzamol).setFont(new Font("Serif",Font.PLAIN,15));
 
                 }
                 if (btnResetReszido.getText().equals("Reset")) {
-
+                    stopDuration.isZero();
                     lblSzamol.setText("00:00.000");
                     panelReszido.removeAll();
                     panelReszido.revalidate();
